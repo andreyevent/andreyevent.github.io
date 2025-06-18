@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EventIMBA</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@300;400;500;600;700&family=Montserrat:wght@700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #121212;
+            --text-color: #e0e0e0;
+            --text-light: #b0b0b0;
+            --accent-color: #6e57e0;
+            --accent-hover: #7d68e6;
+            --card-bg: #1e1e1e;
+            --overlay-bg: rgba(30, 30, 30, 0.95);
+            --shadow-color: rgba(0, 0, 0, 0.3);
+            --gradient-bg: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            --scrollbar-thumb: #6e57e0;
+            --scrollbar-track: #2a2a2a;
+        }
+
+        .light-theme {
+            --bg-color: #f5f5f5;
+            --text-color: #333333;
+            --text-light: #666666;
+            --accent-color: #7b68ee;
+            --accent-hover: #8a7af0;
+            --card-bg: #ffffff;
+            --overlay-bg: rgba(255, 255, 255, 0.95);
+            --shadow-color: rgba(0, 0, 0, 0.1);
+            --gradient-bg: linear-gradient(135deg, #f0f0f5 0%, #e0e8f5 100%);
+            --scrollbar-thumb: #7b68ee;
+            --scrollbar-track: #e0e0e0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            transition: background-color 0.3s, color 0.3s;
+            font-family: 'Comfortaa', cursive;
+        }
+
+        body {
+            background: var(--gradient-bg);
+            color: var(--text-color);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            line-height: 1.6;
+        }
+
+        /* Стилизация скроллбара */
+        ::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--scrollbar-track);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--scrollbar-thumb);
+            border-radius: 10px;
+            background-clip: padding-box;
+            border: 2px solid transparent;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--accent-hover);
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .hero-content {
+            margin-bottom: 3rem;
+            text-align: center;
+        }
+
+        .greeting {
+            font-weight: 600;
+            font-size: clamp(2.5rem, 5vw, 4rem);
+            margin-bottom: 1rem;
+        }
+
+        .highlight {
+            color: var(--accent-color);
+        }
+
+        .subtitle {
+            font-size: clamp(1.2rem, 3vw, 1.8rem);
+            color: var(--text-light);
+            margin-bottom: 2rem;
+        }
+
+        .buttons-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .btn {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 18px;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 4px 15px var(--shadow-color);
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--gradient-bg);
+            z-index: -1;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .btn:hover::before {
+            opacity: 1;
+        }
+
+        .btn:hover {
+            background-color: var(--accent-hover);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px var(--shadow-color);
+        }
+
+        .btn:active {
+            transform: translateY(1px);
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--overlay-bg);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+            backdrop-filter: blur(5px);
+        }
+
+        .overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .overlay-content {
+            background-color: var(--card-bg);
+            border-radius: 16px;
+            padding: 30px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 30px var(--shadow-color);
+            position: relative;
+            transform: translateY(20px);
+            transition: transform 0.3s;
+            scrollbar-width: thin;
+            scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+        }
+
+        .overlay.active .overlay-content {
+            transform: translateY(0);
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--text-color);
+            background: none;
+            border: none;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 50%;
+            transition: background-color 0.2s;
+        }
+
+        .close-btn:hover {
+            background-color: rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            color: var(--accent-color);
+            margin-bottom: 20px;
+            font-size: 28px;
+        }
+
+        .achievement-item {
+            margin-bottom: 15px;
+            padding-left: 20px;
+            position: relative;
+            font-size: 16px;
+        }
+
+        .achievement-item::before {
+            content: '•';
+            position: absolute;
+            left: 0;
+            color: var(--accent-color);
+            font-size: 20px;
+        }
+
+        .about-content {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .about-text {
+            line-height: 1.6;
+            font-size: 16px;
+        }
+
+        .avatar {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            object-fit: cover;
+            align-self: center;
+            border: 3px solid var(--accent-color);
+            box-shadow: 0 5px 15px var(--shadow-color);
+        }
+
+        .contacts-container {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            flex-wrap: wrap;
+            margin-top: 30px;
+        }
+
+        .contact-btn {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 28px;
+            color: white;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+            box-shadow: 0 4px 10px var(--shadow-color);
+            text-decoration: none !important;
+        }
+
+        .contact-btn:hover {
+            transform: translateY(-5px) scale(1.1);
+            box-shadow: 0 8px 20px var(--shadow-color);
+        }
+
+        .osu {
+            background: white;
+            padding: 5px;
+        }
+
+        .osu img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .vk {
+            background: linear-gradient(45deg, #4C75A3, #5D88B3);
+        }
+
+        .tg {
+            background: linear-gradient(45deg, #2AABEE, #229ED9);
+        }
+
+        .discord {
+            background: linear-gradient(45deg, #5865F2, #7289DA);
+        }
+
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: var(--accent-color);
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 0 4px 10px var(--shadow-color);
+            z-index: 10;
+            border: none;
+            font-size: 20px;
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.1);
+        }
+
+        /* Стили для друзей */
+        .friends-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            width: 100%;
+            padding-right: 10px;
+        }
+
+        .friend-card {
+            position: relative;
+            height: 120px;
+            border-radius: 12px;
+            overflow: hidden;
+            display: block;
+            text-decoration: none;
+            color: white;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .friend-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .friend-card-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            filter: brightness(0.7);
+            z-index: 1;
+        }
+
+        .friend-avatar {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            object-fit: cover;
+            left: 15px;
+            top: 15px;
+            border: 2px solid white;
+            z-index: 2;
+        }
+
+        .friend-info {
+            position: absolute;
+            left: 90px;
+            top: 15px;
+            z-index: 2;
+            text-align: left;
+        }
+
+        .friend-name {
+            font-weight: bold;
+            font-size: 18px;
+            margin-bottom: 5px;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+        }
+
+        .friend-rank {
+            font-size: 14px;
+            opacity: 0.9;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+        }
+
+        @media (max-width: 768px) {
+            .friends-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .greeting {
+                font-size: 2rem;
+            }
+            
+            .subtitle {
+                font-size: 1.1rem;
+            }
+            
+            .btn {
+                padding: 15px;
+                font-size: 16px;
+            }
+            
+            .overlay-content {
+                padding: 20px;
+            }
+            
+            h2 {
+                font-size: 24px;
+            }
+            
+            .avatar {
+                width: 120px;
+                height: 120px;
+            }
+            
+            .contact-btn {
+                width: 50px;
+                height: 50px;
+                font-size: 24px;
+            }
+        }
+
+        /* Анимации */
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        .btn {
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .btn:nth-child(1) {
+            animation-delay: 0.1s;
+        }
+
+        .btn:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .btn:nth-child(3) {
+            animation-delay: 0.3s;
+        }
+
+        .btn:nth-child(4) {
+            animation-delay: 0.4s;
+        }
+    </style>
+</head>
+<body>
+    <button class="theme-toggle" id="themeToggle">
+        <i class="fas fa-moon"></i>
+    </button>
+
+    <div class="container">
+        <div class="hero-content">
+            <h1 class="greeting">Привет, я <span class="highlight">EventIMBA</span></h1>
+            <p class="subtitle">Самый крутой игрок в OSU! этого тысячелетия</p>
+        </div>
+        
+        <div class="buttons-container">
+            <button class="btn" id="aboutBtn">Обо мне</button>
+            <button class="btn" id="achievementsBtn">Достижения</button>
+            <button class="btn" id="contactsBtn">Контакты</button>
+            <button class="btn" id="peopleBtn">Уважаемые люди</button>
+        </div>
+    </div>
+
+    <!-- Оверлей "Обо мне" -->
+    <div class="overlay" id="aboutOverlay">
+        <div class="overlay-content">
+            <button class="close-btn" id="closeAbout">&times;</button>
+            <h2>Обо мне</h2>
+            <div class="about-content">
+                <img src="https://a.ppy.sh/9920175?1741991496.jpeg" alt="Avatar" class="avatar">
+                <p class="about-text">
+                    Вы не представляете насколько я люблю пиво. ПРОСТО! БЛЯТЬ! ОБОЖАЮ! Ну еще можно поиграть стримчики, ну, там, джампики пожмакать, иногда альтушки и техначка в целом тоже оки. Но 8 ар и изи мод не предлагайте, я пока что не такой извращенец..... Верю, что однажды, обгоню квакена и буду на нереальном свэге!!! Мои любимые игроки: Cookiezi, idke, Vaxei.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Оверлей "Достижения" -->
+    <div class="overlay" id="achievementsOverlay">
+        <div class="overlay-content">
+            <button class="close-btn" id="closeAchievements">&times;</button>
+            <h2>Достижения</h2>
+            <div class="achievements-list">
+                <div class="achievement-item">6372pp</div>
+                <div class="achievement-item">Пасс 3/4 Epitaph</div>
+                <div class="achievement-item">Пасс 5/6 Uta</div>
+                <div class="achievement-item">Пасс Honesty [DISHONEST]</div>
+                <div class="achievement-item">Пасс RAISE MY SWORD [A THOUSAND FLAMES]</div>
+                <div class="achievement-item">1500pp+ получено за &lt;1,5 мес.</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Оверлей "Контакты" -->
+    <div class="overlay" id="contactsOverlay">
+        <div class="overlay-content">
+            <button class="close-btn" id="closeContacts">&times;</button>
+            <h2>Контакты</h2>
+            <div class="contacts-container">
+                <a href="https://osu.ppy.sh/users/9920175" class="contact-btn osu"><img src="https://upload.wikimedia.org/wikipedia/commons/e/e3/Osulogo.png" alt="osu!"></a>
+                <a href="https://vk.com/andreyevent" class="contact-btn vk"><i class="fab fa-vk"></i></a>
+                <a href="https://t.me/andreyevebar" class="contact-btn tg"><i class="fab fa-telegram"></i></a>
+                <a href="https://discord.gg/CSDVhQV8" class="contact-btn discord"><i class="fab fa-discord"></i></a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Оверлей "Уважаемые люди" -->
+    <div class="overlay" id="peopleOverlay">
+        <div class="overlay-content">
+            <button class="close-btn" id="closePeople">&times;</button>
+            <h2>Уважаемые люди</h2>
+            <div class="friends-grid">
+                <!-- Друг 1 -->
+                <a href="https://osu.ppy.sh/users/14028387" target="_blank" class="friend-card">
+                    <div class="friend-card-bg" style="background-image: url('https://assets.ppy.sh/user-cover-presets/32/a309de64d21720c1d100620b86045bac383ec0b7e5caee0f36a3b89d842ef926.jpeg')"></div>
+                    <img src="https://a.ppy.sh/14028387?1679589241.jpeg" alt="nedura22" class="friend-avatar">
+                    <div class="friend-info">
+                        <div class="friend-name">nedura22</div>
+                        <div class="friend-rank">Лиза</div>
+                    </div>
+                </a>
+                
+                <!-- Друг 2 -->
+                <a href="https://osu.ppy.sh/users/11253463" target="_blank" class="friend-card">
+                    <div class="friend-card-bg" style="background-image: url('https://assets.ppy.sh/user-profile-covers/11253463/fb1a2bef48d1a403edd2523116b5e33cd8c5cd70d59c465ef9e49df3bc5ba15c.gif')"></div>
+                    <img src="https://a.ppy.sh/11253463?1658437709.jpeg" alt="Hacoc" class="friend-avatar">
+                    <div class="friend-info">
+                        <div class="friend-name">Hacoc</div>
+                        <div class="friend-rank">Ванек</div>
+                    </div>
+                </a>
+                
+                <!-- Друг 3 -->
+                <a href="https://osu.ppy.sh/users/35740391" target="_blank" class="friend-card">
+                    <div class="friend-card-bg" style="background-image: url('https://assets.ppy.sh/user-profile-covers/35740391/8b3798d4f8c8b8ad15b95b5da37ad6d768990fdddcecb6ed44f533980a3c12e9.jpeg')"></div>
+                    <img src="https://a.ppy.sh/35740391?1709571603.png" alt="aestexx" class="friend-avatar">
+                    <div class="friend-info">
+                        <div class="friend-name">aestexx</div>
+                        <div class="friend-rank">Яна</div>
+                    </div>
+                </a>
+                
+                <!-- Друг 4 -->
+                <a href="https://osu.ppy.sh/users/16583831" target="_blank" class="friend-card">
+                    <div class="friend-card-bg" style="background-image: url('https://assets.ppy.sh/user-profile-covers/16583831/7978f468ab12efae340b6614b81f91df635a34c3ef48e8bd35ca0adeab5a66fd.jpeg')"></div>
+                    <img src="https://a.ppy.sh/16583831?1679589241.jpeg" alt="Greengage" class="friend-avatar">
+                    <div class="friend-info">
+                        <div class="friend-name">Greengage</div>
+                        <div class="friend-rank">Сливыч</div>
+                    </div>
+                </a>
+                
+                <!-- Друг 5 -->
+                <a href="https://osu.ppy.sh/users/10414827" target="_blank" class="friend-card">
+                    <div class="friend-card-bg" style="background-image: url('https://assets.ppy.sh/user-profile-covers/10414827/98454eb997796663fa27a1148ebe5c0373866886a5890fad99bc75931f52c214.png')"></div>
+                    <img src="https://a.ppy.sh/10414827?1679589241.jpeg" alt="SpidiMun" class="friend-avatar">
+                    <div class="friend-info">
+                        <div class="friend-name">SpidiMun</div>
+                        <div class="friend-rank">Спидик</div>
+                    </div>
+                </a>
+                
+                <!-- Друг 6 -->
+                <a href="https://osu.ppy.sh/users/16840500" target="_blank" class="friend-card">
+                    <div class="friend-card-bg" style="background-image: url('https://assets.ppy.sh/user-profile-covers/16840500/53dc59d6ebf76ea56b2dd6fd7accdca7ce61621683275ee03a235fb734f25398.jpeg')"></div>
+                    <img src="https://a.ppy.sh/16840500?1679589241.jpeg" alt="desaminova" class="friend-avatar">
+                    <div class="friend-info">
+                        <div class="friend-name">desaminova</div>
+                        <div class="friend-rank">Надя</div>
+                    </div>
+                </a>
+                
+                <!-- Друг 7 -->
+                <a href="https://osu.ppy.sh/users/12474859" target="_blank" class="friend-card">
+                    <div class="friend-card-bg" style="background-image: url('https://assets.ppy.sh/user-cover-presets/25/d69760fa06e065dc445739ed3eccc391b37ec0c30e77652e6aae5a3f969af937.jpeg')"></div>
+                    <img src="https://a.ppy.sh/12474859?1679589241.jpeg" alt="Kuro__Usagi" class="friend-avatar">
+                    <div class="friend-info">
+                        <div class="friend-name">Kuro__Usagi</div>
+                        <div class="friend-rank">Саня</div>
+                    </div>
+                </a>
+                
+                <!-- Друг 8 -->
+                <a href="https://osu.ppy.sh/users/13167772" target="_blank" class="friend-card">
+                    <div class="friend-card-bg" style="background-image: url('https://assets.ppy.sh/user-profile-covers/13167772/0241f7bf99c32f591bc7d0eebc8a3704ec97bcae1a037518a0e0078cf905c454.png')"></div>
+                    <img src="https://a.ppy.sh/13167772?1679589241.jpeg" alt="QuekkeN" class="friend-avatar">
+                    <div class="friend-info">
+                        <div class="friend-name">QuekkeN</div>
+                        <div class="friend-rank">Квакуша</div>
+                    </div>
+                </a>
+                
+                <!-- Друг 9 -->
+                <a href="https://osu.ppy.sh/users/10805852" target="_blank" class="friend-card">
+                    <div class="friend-card-bg" style="background-image: url('https://assets.ppy.sh/user-profile-covers/10805852/775c7f09bf612e632f3739f09a0b381b1ff56b3a3a7276ca9a657a0fbbe19036.jpeg')"></div>
+                    <img src="https://a.ppy.sh/10805852?1679589241.jpeg" alt="_necroplasma" class="friend-avatar">
+                    <div class="friend-info">
+                        <div class="friend-name">_necroplasma</div>
+                        <div class="friend-rank">Негроплазмыч</div>
+                    </div>
+                </a>
+                
+                <!-- Друг 10 -->
+                <a href="https://osu.ppy.sh/users/20590787" target="_blank" class="friend-card">
+                    <div class="friend-card-bg" style="background-image: url('https://assets.ppy.sh/user-profile-covers/20590787/a8feda3839b042936497b5b2e2264dbdfdf18f3d1b6ad7ffad1fbc806c5a4cb4.jpeg')"></div>
+                    <img src="https://a.ppy.sh/20590787?1679589241.jpeg" alt="Jabronya" class="friend-avatar">
+                    <div class="friend-info">
+                        <div class="friend-name">Jabronya</div>
+                        <div class="friend-rank">Жаброня</div>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Управление оверлеями
+        const aboutBtn = document.getElementById('aboutBtn');
+        const achievementsBtn = document.getElementById('achievementsBtn');
+        const contactsBtn = document.getElementById('contactsBtn');
+        const peopleBtn = document.getElementById('peopleBtn');
+
+        const aboutOverlay = document.getElementById('aboutOverlay');
+        const achievementsOverlay = document.getElementById('achievementsOverlay');
+        const contactsOverlay = document.getElementById('contactsOverlay');
+        const peopleOverlay = document.getElementById('peopleOverlay');
+
+        const closeAbout = document.getElementById('closeAbout');
+        const closeAchievements = document.getElementById('closeAchievements');
+        const closeContacts = document.getElementById('closeContacts');
+        const closePeople = document.getElementById('closePeople');
+
+        function openOverlay(overlay) {
+            document.querySelectorAll('.overlay').forEach(ov => {
+                ov.classList.remove('active');
+            });
+            overlay.classList.add('active');
+        }
+
+        function closeAllOverlays() {
+            document.querySelectorAll('.overlay').forEach(overlay => {
+                overlay.classList.remove('active');
+            });
+        }
+
+        aboutBtn.addEventListener('click', () => openOverlay(aboutOverlay));
+        achievementsBtn.addEventListener('click', () => openOverlay(achievementsOverlay));
+        contactsBtn.addEventListener('click', () => openOverlay(contactsOverlay));
+        peopleBtn.addEventListener('click', () => openOverlay(peopleOverlay));
+
+        closeAbout.addEventListener('click', closeAllOverlays);
+        closeAchievements.addEventListener('click', closeAllOverlays);
+        closeContacts.addEventListener('click', closeAllOverlays);
+        closePeople.addEventListener('click', closeAllOverlays);
+
+        // Закрытие оверлеев при клике вне контента
+        document.querySelectorAll('.overlay').forEach(overlay => {
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) {
+                    closeAllOverlays();
+                }
+            });
+        });
+
+        // Переключение темы
+        const themeToggle = document.getElementById('themeToggle');
+        const body = document.body;
+        let isDark = true;
+
+        themeToggle.addEventListener('click', () => {
+            isDark = !isDark;
+            if (isDark) {
+                body.classList.remove('light-theme');
+                themeToggle.innerHTML = '<i class="fas fa-moon"></i>';
+            } else {
+                body.classList.add('light-theme');
+                themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+            }
+        });
+
+        // Инициализация иконки темы
+        themeToggle.innerHTML = '<i class="fas fa-moon"></i>';
+    </script>
+</body>
+</html>
